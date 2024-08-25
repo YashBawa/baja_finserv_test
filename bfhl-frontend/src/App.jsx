@@ -9,7 +9,7 @@ function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const result = await axios.post('YOUR_BACKEND_URL/bfhl', { data: JSON.parse(input) });
+            const result = await axios.post('https://baja-finserv-test-backend.onrender.com/bfhl', { data: JSON.parse(input) });
             setResponse(result.data);
         } catch (error) {
             console.error("Error submitting data", error);
