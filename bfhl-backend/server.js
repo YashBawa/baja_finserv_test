@@ -1,41 +1,37 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Middleware to parse JSON
 app.use(bodyParser.json());
 
-// POST endpoint
-app.post('/bfhl', (req, res) => {
-    const userId = "john_doe_17091999"; // Replace with actual logic for user ID
-    const email = "john@xyz.com"; // Replace with actual email
-    const rollNumber = "ABCD123"; // Replace with actual roll number
+app.post('/api/data', (req, res) => {
+    const { data, user_id, email, roll_number } = req.body;
 
-    const data = req.body.data;
-    const numbers = data.filter(item => !isNaN(item));
-    const alphabets = data.filter(item => isNaN(item));
-    const highestLowercase = alphabets.filter(char => char === char.toLowerCase());
-    const highestChar = highestLowercase.length ? [highestLowercase.reduce((a, b) => a > b ? a : b)] : [];
+    // Logic to find the highest lowercase alphabet
+    const lowercaseAlphabets = data.filter(item => item >= 'a' && item <= 'z');
+    const highestLowercaseAlphabet = lowercaseAlphabets.length > 0 
+        ? [String.fromCharCode(Math.max(...lowercaseAlphabets.map(ch => ch.charCodeAt(0))))]
+        : [];
 
-    res.json({
+    // Preparing the response
+    const response = {
         is_success: true,
-        user_id: userId,
+        user_id: user_id,
         email: email,
-        roll_number: rollNumber,
-        numbers: numbers,
-        alphabets: alphabets,
-        highest_lowercase_alphabet: highestChar
-    });
+        roll_number: roll_number,
+        numbers: [], // No numbers to extract
+        alphabets: data,
+        highest_lowercase_alphabet: highestLowercaseAlphabet
+    };
+
+    // Sending the JSON response
+    res.json(response);
 });
 
-// GET endpoint
-app.get('/bfhl', (req, res) => {
-    res.status(200).json({ operation_code: 1 });
-});
-
+// Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
