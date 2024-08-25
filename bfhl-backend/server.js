@@ -1,52 +1,56 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const Joi = require('joi');
-
 const app = express();
+const port = 5000;
 
-// Middleware to parse JSON
-app.use(bodyParser.json());
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-// Define the validation schema
-const schema = Joi.object({
-    data: Joi.array().items(Joi.string()).required()
+// Define a route for the root URL
+app.get('/', (req, res) => {
+    res.send('Hello World!');
 });
 
-// Endpoint to handle data
+// Define an API endpoint to handle the data
 app.post('/api/data', (req, res) => {
-    // Validate input
-    const { error } = schema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ is_success: false, message: error.details[0].message });
-    }
+    const jsonData = req.body.data || [];
 
-    const { data } = req.body;
-
-    // Categorize input data
-    const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
-    const numbers = data.filter(item => /^[0-9]$/.test(item));
-    const lowercaseAlphabets = data.filter(item => item >= 'a' && item <= 'z');
-    const highestLowercaseAlphabet = lowercaseAlphabets.length > 0 
-        ? [String.fromCharCode(Math.max(...lowercaseAlphabets.map(ch => ch.charCodeAt(0))))]
-        : [];
-
-    // Preparing the response
+    // Initialize response object
     const response = {
         is_success: true,
-        user_id: "john_doe_17091999", // Example user ID
-        email: "john@xyz.com", // Example email
-        roll_number: "ABCD123", // Example roll number
-        numbers: numbers,
-        alphabets: alphabets,
-        highest_lowercase_alphabet: highestLowercaseAlphabet
+        user_id: "john_doe_17091999",
+        email: "john@xyz.com",
+        roll_number: "ABCD123",
+        numbers: [],
+        alphabets: [],
+        highest_lowercase_alphabet: []
     };
 
-    // Sending the JSON response
+    // Process the input data
+    jsonData.forEach(item => {
+        if (!isNaN(item)) {
+            // If the item is a number, add it to the numbers array
+            response.numbers.push(item);
+        } else if (typeof item === 'string') {
+            // If the item is a string, add it to the alphabets array
+            response.alphabets.push(item);
+            // Check for the highest lowercase alphabet
+            if (item === item.toLowerCase() && !response.highest_lowercase_alphabet.includes(item)) {
+                response.highest_lowercase_alphabet.push(item);
+            }
+        }
+    });
+
+    // Find the highest lowercase alphabet
+    if (response.highest_lowercase_alphabet.length > 0) {
+        response.highest_lowercase_alphabet.sort();
+        response.highest_lowercase_alphabet = [response.highest_lowercase_alphabet[response.highest_lowercase_alphabet.length - 1]];
+    }
+
+    // Send response
     res.json(response);
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(Server is running at http://localhost:${port});
 });
